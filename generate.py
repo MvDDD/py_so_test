@@ -108,7 +108,7 @@ def process_func(decl_node):
 
 def resolve_type(type, classes, structs):
     if type.startswith("ptr<"):
-        return f"ctypes.POINTER({resolve_type(type[4:-1], classes, structs)})"
+        return f"ptr({resolve_type(type[4:-1], classes, structs)})"
     elif type in classes:
         return f"{type}.Struct"
     elif type in structs:
@@ -209,13 +209,17 @@ def generate_python_class(types, structs, funcs, dll_path):
     code += "    return c\n"
 
     classes = {}
+    unboundfuncs = {}
     for func, define in funcs.items():
         classname = func.split("_")[0]
         funcname = "_".join(func.split("_")[1:])
-        if classname in classes: 
-            classes[classname][funcname] = define
+        if funcname and (classname in structs):
+            if classname in classes: 
+                classes[classname][funcname] = define
+            else:
+                classes[classname] = {funcname:define}
         else:
-            classes[classname] = {funcname:define}
+            unboundfuncs[func] = define
     classdefs = {k:v for k,v in structs.items() if k in classes}
     structs = {k:v for k,v in structs.items() if k not in classes}
     for name, struct in structs.items():
@@ -239,12 +243,16 @@ def generate_python_class(types, structs, funcs, dll_path):
         code += f"    class Struct(ctypes.Structure):\n"
         code += f"        _fields_ = [\n"
         for field in cldef.fields:
-            code += f"{" "*12}(\"{field[0]}\", {resolve_type(field[1], classes, structs)}),\n"
+            code += f"{" "*12}(\"{field[0]}\", {resolve_type(field[1], classes, structs).replace(f"ptr({classname}.Struct)", f"{classname}.Struct_LP")}),\n"
         code += f"        ]\n    \n"
         code += f"    Struct_LP = ctypes.POINTER(Struct)\n"
         code += f"    c__error = dll.{classname}__error\n"
+        code += f"    c__error.argtypes = [Struct_LP]\n"
+        code += f"    c__error.restype = i32\n"
         for funcname, func in {k:v for k,v in methods.items() if not k in ["_error"]}.items():
             code += f"    c_{funcname} = dll.{classname}_{funcname}\n"
+            code += f"    c_{funcname}.argtypes = [{", ".join(resolve_type(arg[1], classes, structs).replace(f"ptr({classname}.Struct)", f"Struct_LP") for arg in func.args)}]\n"
+            code += f"    c_{funcname}.restype = {resolve_type(func.ret, classes, structs).replace(f"ptr({classname}.Struct)", f"Struct_LP")}\n"
         code += "\n"
         code += "    @staticmethod\n"
         code += "    def init_from(struct_instance):\n"
@@ -269,12 +277,12 @@ def generate_python_class(types, structs, funcs, dll_path):
             code += (f"        self.c_create(self._struct)" if not len(args) else \
                      f"        self.c_create(self._struct, {", ".join(arg[0] for arg in args)})") + "\n"
         code += f"        error = self.c__error(self._struct)\n"
-        code += f"        if error: raise MemoryError(\"{classname}.create failed with code {{error}}\")\n"
+        code += f"        if error: raise MemoryError(f\"{classname}.create failed with code {{error}}\")\n"
         if "destroy" in methods:
             code += f"    def __del__(self):\n"
             code += f"        self.c_destroy(self._struct)\n"
             code += f"        error = self.c__error(self._struct)\n"
-            code += f"        if error: raise MemoryError(\"{classname}.destroy failed with code {{error}}\")\n"
+            code += f"        if error: raise MemoryError(f\"{classname}.destroy failed with code {{error}}\")\n"
             code += f"\n"
 
         for name, method in {k:v for k,v in methods.items() if not k in ["create","destroy", "_error"]}.items():
@@ -283,7 +291,7 @@ def generate_python_class(types, structs, funcs, dll_path):
                 code += f"    def {name}(self):\n"
                 code += f"        retval = self.c_{name}(self._struct)\n"
                 code += f"        error = self.c__error(self._struct)\n"
-                code += f"        if error: raise MemoryError(\"{classname}.{name} failed with code {{error}}\")\n"
+                code += f"        if error: raise MemoryError(f\"{classname}.{name} failed with code {{error}}\")\n"
                 code += f"        return retval\n"
             else:
                 arg_defs = ", ".join(f"{arg[0]}={resolve_type(arg[1], classes, structs).replace(f"{classname}.", "")}()" for arg in args)
@@ -291,7 +299,7 @@ def generate_python_class(types, structs, funcs, dll_path):
                 arg_names = ", ".join(arg[0] for arg in args)
                 code += f"        retval = self.c_{name}(self._struct, {arg_names})\n"
                 code += f"        error = self.c__error(self._struct)\n"
-                code += f"        if error: raise MemoryError(\"{classname}.{name} failed with code {{error}}\")\n"
+                code += f"        if error: raise MemoryError(f\"{classname}.{name} failed with code {{error}}\")\n"
                 code += f"        return retval\n"
             code += f"\n"
         for name, type in cldef.fields:
@@ -308,6 +316,11 @@ def generate_python_class(types, structs, funcs, dll_path):
         code += f"        contents_array = [{", ".join(contents)}]\n"
         code += f"        string = \", \".join(f\"{{k}}:{{v}}\" for k,v in contents_array)\n"
         code += f"        return f\"<{classname} {{{{{{string}}}}}}>\"\n"
+        code += "\n"
+    for name, fdef in unboundfuncs.items():
+        code += f"{name} = dll.{name}\n"
+        code += f"{name}.argtypes = [{", ".join(resolve_type(arg[1], classes, structs) for arg in fdef.args)}]\n"
+        code += f"{name}.restype = {resolve_type(fdef.ret, classes, structs)}\n"
     return code
 
 # -------------------------
@@ -335,7 +348,35 @@ def main(target_dir):
     # Step 1: parse header -> .def
     cpp_args= [
         '-D__attribute__(...)=',
-        '-I./include'
+        '-I./include',
+        '-Dint8_t=signed char',
+        '-Dint16_t=short',
+        '-Dint32_t=int',
+        '-Dint64_t=long long',
+        '-Duint8_t=unsigned char',
+        '-Duint16_t=unsigned short',
+        '-Duint32_t=unsigned int',
+        '-Duint64_t=unsigned long long',
+        '-Dint_least8_t=int8_t',
+        '-Dint_least16_t=int16_t',
+        '-Dint_least32_t=int32_t',
+        '-Dint_least64_t=int64_t',
+        '-Duint_least8_t=uint8_t',
+        '-Duint_least16_t=uint16_t',
+        '-Duint_least32_t=uint32_t',
+        '-Duint_least64_t=uint64_t',
+        '-Dint_fast8_t=int8_t',
+        '-Dint_fast16_t=int16_t',
+        '-Dint_fast32_t=int32_t',
+        '-Dint_fast64_t=int64_t',
+        '-Duint_fast8_t=uint8_t',
+        '-Duint_fast16_t=uint16_t',
+        '-Duint_fast32_t=uint32_t',
+        '-Duint_fast64_t=uint64_t',
+        '-Dintptr_t=long',
+        '-Duintptr_t=unsigned long',
+        '-Dintmax_t=long long',
+        '-Duintmax_t=unsigned long long',
     ]
 
     ast = parse_file(header_path, use_cpp=True, cpp_args=cpp_args)
@@ -380,8 +421,8 @@ def main(target_dir):
         )
 
 if __name__ == "__main__":
-    sys.argv.append("./nn")
-    if len(sys.argv) != 2:
+    sys.argv.append("./nn2")
+    if len(sys.argv) <= 2:
         print(f"Usage: {sys.argv[0]} /path/to/folder")
         sys.exit(1)
 

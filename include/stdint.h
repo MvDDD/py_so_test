@@ -2,45 +2,45 @@
 #define STDINT_H
 
 /* Exact-width integer types */
-typedef signed char       int8_t;
-typedef short             int16_t;
-typedef int               int32_t;
-typedef long long         int64_t;
 
-typedef unsigned char     uint8_t;
-typedef unsigned short    uint16_t;
-typedef unsigned int      uint32_t;
-typedef unsigned long long uint64_t;
 
 /* Least types */
-typedef int8_t   int_least8_t;
-typedef int16_t  int_least16_t;
-typedef int32_t  int_least32_t;
-typedef int64_t  int_least64_t;
 
-typedef uint8_t  uint_least8_t;
-typedef uint16_t uint_least16_t;
-typedef uint32_t uint_least32_t;
-typedef uint64_t uint_least64_t;
 
 /* Fast types */
-typedef int8_t   int_fast8_t;
-typedef int16_t  int_fast16_t;
-typedef int32_t  int_fast32_t;
-typedef int64_t  int_fast64_t;
 
-typedef uint8_t  uint_fast8_t;
-typedef uint16_t uint_fast16_t;
-typedef uint32_t uint_fast32_t;
-typedef uint64_t uint_fast64_t;
 
 /* Integer types capable of holding object pointers */
-typedef long intptr_t;
-typedef unsigned long uintptr_t;
 
 /* Greatest-width integer types */
-typedef long long intmax_t;
-typedef unsigned long long uintmax_t;
+'-Dint8_t=signed char',
+'-Dint16_t=short',
+'-Dint32_t=int',
+'-Dint64_t=long long',
+'-Duint8_t=unsigned char',
+'-Duint16_t=unsigned short',
+'-Duint32_t=unsigned int',
+'-Duint64_t=unsigned long long',
+'-Dint_least8_t=int8_t',
+'-Dint_least16_t=int16_t',
+'-Dint_least32_t=int32_t',
+'-Dint_least64_t=int64_t',
+'-Duint_least8_t=uint8_t',
+'-Duint_least16_t=uint16_t',
+'-Duint_least32_t=uint32_t',
+'-Duint_least64_t=uint64_t',
+'-Dint_fast8_t=int8_t',
+'-Dint_fast16_t=int16_t',
+'-Dint_fast32_t=int32_t',
+'-Dint_fast64_t=int64_t',
+'-Duint_fast8_t=uint8_t',
+'-Duint_fast16_t=uint16_t',
+'-Duint_fast32_t=uint32_t',
+'-Duint_fast64_t=uint64_t',
+'-Dintptr_t=long',
+'-Duintptr_t=unsigned long',
+'-Dintmax_t=long long',
+'-Duintmax_t=unsigned long long',
 
 /* Limits macros */
 #define INT8_MIN   (-128)
