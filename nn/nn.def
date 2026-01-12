@@ -1,0 +1,37 @@
+struct __fsid_t {
+    <class 'pycparser.c_ast.ArrayDecl'> __val;
+}
+
+struct Layer {
+    i32 size;
+    ptr<f32> weights;
+}
+
+struct Path {
+    i32 source;
+    i32 target;
+    f32 weight;
+}
+
+struct PathLayer {
+    i32 numpaths;
+    ptr<Path> paths;
+}
+
+struct Net {
+    i32 numlayers;
+    ptr<Layer> layers;
+    ptr<PathLayer> pathlayers;
+}
+
+struct NN {
+    Net net;
+    i32 _error;
+}
+
+func NN_create(n:ptr<NN>, numlayers:i32, layersizes:ptr<i32>) -> void
+func NN_destroy(n:ptr<NN>) -> void
+func NN_run(n:ptr<NN>, input:ptr<f32>, output:ptr<f32>) -> void
+func NN_clone(old:ptr<NN>, new:ptr<NN>) -> void
+func NN_mutate(n:ptr<NN>, rate:f32) -> void
+func NN__error(n:ptr<NN>) -> i32
