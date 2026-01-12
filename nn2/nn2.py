@@ -1,5 +1,5 @@
 import ctypes
-dll = ctypes.CDLL('/home/mffvd/Documents/py lib so test/nn2/libnn2.so')
+dll = ctypes.CDLL('C:/Users/markv/OneDrive/Desktop/git/py_so_test/nn2/libnn2.dll')
 
 
 i8 = ctypes.c_int8
@@ -22,15 +22,6 @@ def ptr(typ):
     c = ctypes.POINTER(typ)
     c.size = ctypes.sizeof(ctypes.c_void_p)
     return c
-#struct
-class __fsid_t(ctypes.Structure):
-    _fields_ = [
-    ]
-
-    def __repr__(self):
-        contents_array = []
-        string = ", ".join(f"{k}:{v}" for k,v in contents_array)
-        return f"<__fsid_t {{{string}}}>"
 class NN:
     class Struct(ctypes.Structure):
         _fields_ = [

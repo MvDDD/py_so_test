@@ -182,7 +182,7 @@ def generate_python_class(types, structs, funcs, dll_path):
     """
     code = ""
     code += "import ctypes\n"
-    code += f"dll = ctypes.CDLL('{dll_path}')\n\n"
+    code += f"dll = ctypes.CDLL('{dll_path.replace("\\", "/")}')\n\n"
     code += "\n"
 
     code += "i8 = ctypes.c_int8\n"
@@ -239,7 +239,7 @@ def generate_python_class(types, structs, funcs, dll_path):
         code += f"    class Struct(ctypes.Structure):\n"
         code += f"        _fields_ = [\n"
         for field in cldef.fields:
-            code += f"{" "*12}(\"{field[0]}\", {field[1]}),\n"
+            code += f"{" "*12}(\"{field[0]}\", {resolve_type(field[1], classes, structs)}),\n"
         code += f"        ]\n    \n"
         code += f"    Struct_LP = ctypes.POINTER(Struct)\n"
         code += f"    c__error = dll.{classname}__error\n"
@@ -334,7 +334,8 @@ def main(target_dir):
 
     # Step 1: parse header -> .def
     cpp_args= [
-   #     '-D__attribute__(...)='
+        '-D__attribute__(...)=',
+        '-I./include'
     ]
 
     ast = parse_file(header_path, use_cpp=True, cpp_args=cpp_args)
@@ -374,11 +375,12 @@ def main(target_dir):
                 types,
                 structs2,
                 funcs2,
-                dll_path=os.path.join(target_dir, f"lib{lib_name}.so"),
+                dll_path=os.path.join(target_dir, f"lib{lib_name}" + (".so" if os.name == "posix" else ".dll" if os.name == "nt" else ".dylib")),
             )
         )
 
 if __name__ == "__main__":
+    sys.argv.append("./nn")
     if len(sys.argv) != 2:
         print(f"Usage: {sys.argv[0]} /path/to/folder")
         sys.exit(1)

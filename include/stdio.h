@@ -6,47 +6,47 @@ typedef long fpos_t;
 typedef size_t size_t;
 // File I/O
 
-FILE *fopen(const char *restrict filename, const char *restrict mode);
-FILE *freopen(const char *restrict filename, const char *restrict mode, FILE *restrict stream);
+FILE *fopen(char *filename, char *mode);
+FILE *freopen(char *filename, char *mode, FILE *stream);
 int fclose(FILE *stream);
 int fflush(FILE *stream);
 
 // Formatted I/O
-int fprintf(FILE *restrict stream, const char *restrict format, ...);
-int fscanf(FILE *restrict stream, const char *restrict format, ...);
-int printf(const char *restrict format, ...);
-int scanf(const char *restrict format, ...);
-int snprintf(char *restrict s, size_t n, const char *restrict format, ...);
-int sprintf(char *restrict s, const char *restrict format, ...);
-int sscanf(const char *restrict s, const char *restrict format, ...);
-int vfprintf(FILE *restrict stream, const char *restrict format, va_list arg);
-int vprintf(const char *restrict format, va_list arg);
-int vsnprintf(char *restrict s, size_t n, const char *restrict format, va_list arg);
-int vsprintf(char *restrict s, const char *restrict format, va_list arg);
-int vfscanf(FILE *restrict stream, const char *restrict format, va_list arg);
-int vscanf(const char *restrict format, va_list arg);
+int fprintf(FILE *stream, char *format, ...);
+int fscanf(FILE *stream, char *format, ...);
+int printf(char *format, ...);
+int scanf(char *format, ...);
+int snprintf(char *s, size_t n, char *format, ...);
+int sprintf(char *s, char *format, ...);
+int sscanf(char *s, char *format, ...);
+int vfprintf(FILE *stream, char *format, va_list arg);
+int vprintf(char *format, va_list arg);
+int vsnprintf(char *s, size_t n, char *format, va_list arg);
+int vsprintf(char *s, char *format, va_list arg);
+int vfscanf(FILE *stream, char *format, va_list arg);
+int vscanf(char *format, va_list arg);
 
 // Character I/O
 int fgetc(FILE *stream);
-char *fgets(char *restrict s, int n, FILE *restrict stream);
+char *fgets(char *s, int n, FILE *stream);
 int fputc(int c, FILE *stream);
-int fputs(const char *restrict s, FILE *restrict stream);
+int fputs(char *s, FILE *stream);
 int getc(FILE *stream);
 int getchar(void);
 char *gets(char *s); // deprecated
 int putc(int c, FILE *stream);
 int putchar(int c);
-int puts(const char *s);
+int puts(char *s);
 int ungetc(int c, FILE *stream);
 
 // Block I/O
-size_t fread(void *restrict ptr, size_t size, size_t nmemb, FILE *restrict stream);
-size_t fwrite(const void *restrict ptr, size_t size, size_t nmemb, FILE *restrict stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 // File positioning
-int fgetpos(FILE *restrict stream, fpos_t *restrict pos);
+int fgetpos(FILE *stream, fpos_t *pos);
 int fseek(FILE *stream, long offset, int whence);
-int fsetpos(FILE *stream, const fpos_t *pos);
+int fsetpos(FILE *stream, fpos_t *pos);
 long ftell(FILE *stream);
 void rewind(FILE *stream);
 
@@ -60,8 +60,8 @@ FILE *tmpfile(void);
 char *tmpnam(char *s);
 
 // File operations
-int remove(const char *filename);
-int rename(const char *old_filename, const char *new_filename);
+int remove(char *filename);
+int rename(char *old_filename, char *new_filename);
 
 // Standard streams
 extern FILE *stdin;

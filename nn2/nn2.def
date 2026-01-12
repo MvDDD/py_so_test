@@ -1,7 +1,3 @@
-struct __fsid_t {
-    <class 'pycparser.c_ast.ArrayDecl'> __val;
-}
-
 struct NN {
     i32 depth;
     ptr<i32> layer_sizes;

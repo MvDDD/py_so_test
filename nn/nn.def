@@ -1,7 +1,3 @@
-struct __fsid_t {
-    <class 'pycparser.c_ast.ArrayDecl'> __val;
-}
-
 struct Layer {
     i32 size;
     ptr<f32> weights;
