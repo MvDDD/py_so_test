@@ -185,21 +185,15 @@ def generate_python_class(types, structs, funcs, dll_path):
     code += f"dll = ctypes.CDLL('{dll_path.replace("\\", "/")}')\n\n"
     code += "\n"
 
-    code += "i8 = ctypes.c_int8\n"
-    code += "u8 = ctypes.c_uint8\n"
-    code += "i16 = ctypes.c_int16\n"
-    code += "u16 = ctypes.c_uint16\n"
-    code += "i32 = ctypes.c_int32\n"
-    code += "u32 = ctypes.c_uint32\n"
-    code += "i64 = ctypes.c_int64\n"
-    code += "u64 = ctypes.c_uint64\n"
-    code += "f32 = ctypes.c_float\n"
-    code += "f64 = ctypes.c_double\n"
-    code += "f80 = ctypes.c_longdouble\n"
-    code += "void = None\n"
+    code += "i8 = ctypes.c_int8;        u8 = ctypes.c_uint8\n"
+    code += "i16 = ctypes.c_int16;      u16 = ctypes.c_uint16\n"
+    code += "i32 = ctypes.c_int32;      u32 = ctypes.c_uint32\n"
+    code += "i64 = ctypes.c_int64;      u64 = ctypes.c_uint64\n"
+    code += "f32 = ctypes.c_float;      f64 = ctypes.c_double\n"
+    code += "f80 = ctypes.c_longdouble; void = None\n"
     code += "\n"
 
-    code += "sizeof = ctypes.sizeof"
+    code += "sizeof = ctypes.sizeof\n"
     code += "\n"
     code += "def ptr(typ):\n"
     code += "    if typ==None:\n"
@@ -223,7 +217,7 @@ def generate_python_class(types, structs, funcs, dll_path):
     classdefs = {k:v for k,v in structs.items() if k in classes}
     structs = {k:v for k,v in structs.items() if k not in classes}
     for name, struct in structs.items():
-        code += "#struct\n"
+        code += "\n"
         code += f"class {name}(ctypes.Structure):\n"
         code += "    _fields_ = [\n"
         for fname,type in struct.fields:
@@ -236,7 +230,7 @@ def generate_python_class(types, structs, funcs, dll_path):
         code += f"        contents_array = [{", ".join(contents)}]\n"
         code += f"        string = \", \".join(f\"{{k}}:{{v}}\" for k,v in contents_array)\n"
         code += f"        return f\"<{name} {{{{{{string}}}}}}>\"\n"
-
+    code += "\n"
     for classname, methods in classes.items():
         cldef = classdefs[classname]
         code += f"class {classname}:\n"
@@ -349,34 +343,6 @@ def main(target_dir):
     cpp_args= [
         '-D__attribute__(...)=',
         '-I./include',
-        '-Dint8_t=signed char',
-        '-Dint16_t=short',
-        '-Dint32_t=int',
-        '-Dint64_t=long long',
-        '-Duint8_t=unsigned char',
-        '-Duint16_t=unsigned short',
-        '-Duint32_t=unsigned int',
-        '-Duint64_t=unsigned long long',
-        '-Dint_least8_t=int8_t',
-        '-Dint_least16_t=int16_t',
-        '-Dint_least32_t=int32_t',
-        '-Dint_least64_t=int64_t',
-        '-Duint_least8_t=uint8_t',
-        '-Duint_least16_t=uint16_t',
-        '-Duint_least32_t=uint32_t',
-        '-Duint_least64_t=uint64_t',
-        '-Dint_fast8_t=int8_t',
-        '-Dint_fast16_t=int16_t',
-        '-Dint_fast32_t=int32_t',
-        '-Dint_fast64_t=int64_t',
-        '-Duint_fast8_t=uint8_t',
-        '-Duint_fast16_t=uint16_t',
-        '-Duint_fast32_t=uint32_t',
-        '-Duint_fast64_t=uint64_t',
-        '-Dintptr_t=long',
-        '-Duintptr_t=unsigned long',
-        '-Dintmax_t=long long',
-        '-Duintmax_t=unsigned long long',
     ]
 
     ast = parse_file(header_path, use_cpp=True, cpp_args=cpp_args)
@@ -386,7 +352,7 @@ def main(target_dir):
     for ext in ast.ext:
         if isinstance(ext, c_ast.Typedef) and isinstance(ext.type.type, c_ast.Struct):
             sname, fields = process_struct(ext.type.type)
-            if not sname:
+            if ext.name:
                 sname = ext.name
             structs[sname] = fields
 
@@ -421,9 +387,9 @@ def main(target_dir):
         )
 
 if __name__ == "__main__":
-    sys.argv.append("./nn2")
-    if len(sys.argv) <= 2:
-        print(f"Usage: {sys.argv[0]} /path/to/folder")
-        sys.exit(1)
+    sys.argv.append("./genan")
+    #if len(sys.argv) <= 2:
+    #    print(f"Usage: {sys.argv[0]} /path/to/folder")
+    #    sys.exit(1)
 
     main(sys.argv[1])

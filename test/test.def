@@ -1,0 +1,8 @@
+struct str {
+    i32 len;
+    ptr<i8> data;
+}
+
+func add(a:i32, b:i32) -> i32
+func add_array(a:ptr<i32>, b:ptr<i32>, c:ptr<i32>, count:i32) -> void
+func init_str_arr(s:ptr<str>, num:i32) -> void
