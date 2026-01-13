@@ -1,0 +1,14 @@
+struct FILE {
+}
+
+struct File {
+    ptr<FILE> f;
+    i32 _error;
+}
+
+func File__error(f:ptr<File>) -> i32
+func File_create(f:ptr<File>, path:ptr<i8>, mode:ptr<i8>) -> void
+func File_destroy(f:ptr<File>) -> void
+func File_read(f:ptr<File>, buffer:ptr<void>, length:u64) -> u64
+func File_write(f:ptr<File>, buffer:ptr<void>, length:u64) -> u64
+func File_gethandle(f:ptr<File>) -> ptr<FILE>
